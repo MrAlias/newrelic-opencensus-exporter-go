@@ -149,6 +149,19 @@ func (e *Exporter) recordCountData(vd *view.Data, data *view.CountData, attrs ma
 	e.Harvester.RecordMetric(metric)
 }
 
+func (e *Exporter) recordDistributionData(vd *view.Data, data *view.DistributionData, attrs map[string]interface{}) {
+	e.Harvester.RecordMetric(telemetry.Summary{
+		Name:       vd.View.Name,
+		Attributes: attrs,
+		Timestamp:  vd.Start,
+		Interval:   vd.End.Sub(vd.Start),
+		Min:        data.Min,
+		Max:        data.Max,
+		Count:      float64(data.Count),
+		Sum:        data.Sum(),
+	})
+}
+
 func (e *Exporter) recordLastValueData(vd *view.Data, data *view.LastValueData, attrs map[string]interface{}) {
 	e.Harvester.RecordMetric(telemetry.Gauge{
 		Name:       vd.View.Name,
@@ -201,6 +214,7 @@ func (e *Exporter) ExportView(vd *view.Data) {
 		case *view.LastValueData:
 			e.recordLastValueData(vd, data, attrs)
 		case *view.DistributionData:
+			e.recordDistributionData(vd, data, attrs)
 		default:
 		}
 	}
