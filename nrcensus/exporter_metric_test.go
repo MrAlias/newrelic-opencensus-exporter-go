@@ -382,7 +382,24 @@ func TestDistributionMetrics(t *testing.T) {
 	}
 	exp.ExportView(vd)
 
-	if len(h.metrics) != 0 {
-		t.Errorf("distribution type metrics not yet supported: %#v", h.metrics)
+	if metric := h.metrics[0]; !reflect.DeepEqual(metric, telemetry.Summary{
+		Name:      "MyTestLastValue",
+		Count:     5,
+		Min:       1,
+		Max:       20000,
+		Sum:       6170, // not real data, this is just Mean * Count.
+		Timestamp: testTime,
+		Interval:  time.Second * 10,
+		Attributes: map[string]interface{}{
+			"first":                    "firstValue",
+			"second":                   "secondValue",
+			"instrumentation.provider": instrumentationProvider,
+			"collector.name":           collectorName,
+			"measure.name":             "tests",
+			"measure.unit":             "t",
+			"service.name":             "serviceName",
+		},
+	}) {
+		t.Errorf("metric fields are incorrect: %#v", metric)
 	}
 }
